@@ -1,12 +1,12 @@
 [Desktop Entry]
 Encoding=UTF-8
 Categories=GTK;Utility;Applications;Accessories
-Exec=xvkbd -geometry 1024x250-0+300 -no-keypad
+Exec=cellwriter --window-x=0 --window-y=320 --keyboard-only --dock-window=0
 Icon=/usr/share/icons/gnome/48x48/apps/access.png
 StartupNotify=true
 Type=Application
 Terminal=false
 MimeType=
-Name=Xvkbd On screen keyboard
+Name=Cellwriter On screen keyboard
 GenericName=On Screen Keyboard
 Comment=On Screen keyboard

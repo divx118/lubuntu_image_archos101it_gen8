@@ -11,6 +11,79 @@
 #
 # By default this script does nothing.
 
-# Start loading script and log it
-/etc/startup.sh 1> /var/log/startup.log 2>&1
+echo 9 > /proc/sys/kernel/printk
+if [ -f "/swapfile" ]; then
+echo "**** swapfile exists"  > /dev/kmsg
+else
+echo "#############################################################################################" > /dev/kmsg
+echo "################## First start please be patient we have to do some things ##################" > /dev/kmsg
+echo "#############################################################################################" > /dev/kmsg
+echo "**** create swapfile"  > /dev/kmsg
+dd if=/dev/zero of=/swapfile bs=1024 count=524288
+mkswap /swapfile
+chown root:root /swapfile
+chmod 0600 /swapfile
+echo "/swapfile\tswap\tswap\tdefaults\t0\t0" >> /etc/fstab
+swapon /swapfile
+echo "**** Reinstall libgdk-pixbuf2.0-0"  > /dev/kmsg
+dpkg -i /libgdk-pixbuf2.0-0_2.24.0-1ubuntu1_armel.deb
+echo "**** Remove network manager we will be using wicd"  > /dev/kmsg
+apt-get -y remove network-manager
+echo "**** Remove xfce powermanager we will be using our own battery monitor"  > /dev/kmsg
+apt-get -y remove xfce4-power-manager
+fi
+
+if [ -d "/lib/modules/2.6.37.6+/extra" ]; then
+echo "**** SGX modules exists" > /dev/kmsg
+else
+echo "**** Installing SGX" > /dev/kmsg
+/etc/init.d/omap-demo
+depmod -a
+echo "#############################################################################################" > /dev/kmsg
+echo "##################              All done going to reboot now :)            ##################" > /dev/kmsg
+echo "#############################################################################################" > /dev/kmsg
+reboot
+fi
+echo "**** mount /dev/mmcblk1p2 on /media/squashfs" > /dev/kmsg
+if [ -d "/media/squashfs" ]; then
+ echo "**** squashfs exists" > /dev/kmsg
+else
+mkdir /media/squashfs
+fi
+mount /dev/mmcblk1p2 /media/squashfs
+
+echo "**** Mount the android squashfs in case we may need it" > /dev/kmsg
+if [ -d "/android" ]; then
+ echo "**** android exists" > /dev/kmsg
+else
+mkdir /android
+fi
+mount -o loop,offset=256 /media/squashfs/androidmerged.squashfs.secure /android
+if [ -d "/media/data" ]; then
+ echo "**** /media/data exists" > /dev/kmsg
+else
+mkdir /media/data
+fi
+echo "**** Mount the android data we need this for wifi mac adress" > /dev/kmsg
+mount /dev/mmcblk0p4 /media/data
+echo "**** Get wifi up"  > /dev/kmsg
+MAC_ADDRESS=`cut -f3 -d" " /media/data/system/persist.archos.WIFI_mac`
+ifconfig wlan0 hw ether $MAC_ADDRESS
+ifconfig wlan0 up
+#chmod 0777 /sys/module/hid_multitouch/parameters/*
+#echo Y > /sys/module/hid_multitouch/parameters/rotate180
+
+echo "**** load module for usb ethernet" > /dev/kmsg
+modprobe g_cdc
+
+echo "**** load bluetooth" > /dev/kmsg
+while true
+do
+
+	modprobe btwilink
+	sleep 10	# Wait while it miserably fails to install "line disc".
+	hciattach -n /dev/ttyS0 texas 3000000
+	rmmod btwilink
+done &
+
 exit 0
