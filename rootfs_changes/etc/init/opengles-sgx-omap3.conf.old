@@ -1,0 +1,48 @@
+# script based on rc.pvr from OpenEmbedded by Koen Kooi <koen@openembedded.org>
+
+description "PowerVR SGX"
+author "Ricardo Salveti de Araujo <ricardo.salveti@canonical.com>"
+
+start on runlevel [2345]
+
+console output
+
+pre-start script
+	CPUTYPE=$(devmem2 0x4800244c | grep 'Value at address' | sed -e 's/.*): //' | \
+			sed -e 's/0x5C00/OMAP3503/' -e 's/0x1C00/OMAP3515/' \
+			-e 's/0x4C00/OMAP3525/' -e 's/0xC00/OMAP3530/')
+
+	if [ "$CPUTYPE" = "OMAP3530" ]; then
+		modprobe omaplfb
+		#modprobe bufferclass_ti
+		modprobe pvrsrvkm
+
+		touch /etc/powervr-esrev
+		SAVED_ESREVISION="$(cat /etc/powervr-esrev)"
+
+		devmem2 0x48004B48 w 0x2 > /dev/null
+		devmem2 0x48004B10 w 0x1 > /dev/null
+		devmem2 0x48004B00 w 0x2 > /dev/null
+
+		ES_REVISION="$(devmem2 0x50000014 | sed -e s:0x10205:5: -e s:0x10201:3: -e s:0x10003:2: | tail -n1 | awk -F': ' '{print $2}')"
+
+		if [ "${SAVED_ESREVISION}" ] && \
+				[ "${ES_REVISION}" != "${SAVED_ESREVISION}" ]; then
+			# remove old links
+			for file in /usr/lib/gfx_rel_es${SAVED_ESREVISION}.x/*; do
+				[ -h "/usr/lib/$(basename $file)" ] && rm "/usr/lib/$(basename $file)"
+			done
+		fi
+		for file in /usr/lib/gfx_rel_es${ES_REVISION}.x/*; do
+			[ -h "/usr/lib/$(basename $file)" ] && continue
+			# if we conflict with a normal file, abort
+			[ -f "/usr/lib/$(basename $file)" ] && exit 1
+			ln -fs "$file" "/usr/lib/$(basename $file)"
+		done
+		echo "${ES_REVISION}" > /etc/powervr-esrev
+		# if called more than once it returns 1
+		/usr/bin/pvrsrvinit${ES_REVISION}.x || true
+	else
+		echo "No SGX hardware found, not starting PVR"
+	fi
+end script
