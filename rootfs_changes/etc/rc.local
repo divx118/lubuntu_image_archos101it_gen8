@@ -65,7 +65,7 @@ else
 mkdir /media/data
 fi
 echo "**** Mount the android data we need this for wifi mac adress" > /dev/kmsg
-mount /dev/mmcblk0p4 /media/data
+mount /dev/mmcblk1p4 /media/data
 echo "**** Get wifi up"  > /dev/kmsg
 MAC_ADDRESS=`cut -f3 -d" " /media/data/system/persist.archos.WIFI_mac`
 ifconfig wlan0 hw ether $MAC_ADDRESS
@@ -76,12 +76,14 @@ ifconfig wlan0 up
 echo "**** load module for usb ethernet" > /dev/kmsg
 modprobe g_cdc
 
+# change permission on brightness path so we can adjust it in userspace.
+#chmod 0777 /sys/devices/platform/omap-pwm-backlight/backlight/omap-pwm-backlight/brightness
+/home/ubuntu/bat &
 echo "**** load bluetooth" > /dev/kmsg
 while true
 do
 
 	modprobe btwilink
-	sleep 10	# Wait while it miserably fails to install "line disc".
 	hciattach -n /dev/ttyS0 texas 3000000
 	rmmod btwilink
 done &

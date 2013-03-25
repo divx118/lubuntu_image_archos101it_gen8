@@ -45,10 +45,13 @@ modules: openaos_dirs
 image_install: 
 	@rm -rf $(UBUNTU_IMAGE)/lib/modules # Note this will remove all modules in your image dir
 	@mkdir -p $(UBUNTU_IMAGE)/lib/modules
-	@cd kernel; make ARCH=arm CROSS_COMPILE=arm-linux-gnueabi- INSTALL_MOD_PATH=../$(UBUNTU_IMAGE)/ modules_install
+	@cd kernel; make ARCH=arm CROSS_COMPILE=arm-linux-gnueabi- INSTALL_MOD_PATH=../$(UBUNTU_IMAGE) modules_install
 	@cd ../
+	@rm $(UBUNTU_IMAGE)/lib/modules/2.6.37.6+/build
+	@rm $(UBUNTU_IMAGE)/lib/modules/2.6.37.6+/source
 	@rm -rf $(UBUNTU_IMAGE)/lib/modules/2.6.37.6+/kernel/drivers/gpu # remove gpu drivers, because we will use the ones from TI graphic SDK. For Meego you will need these.
 	@mkdir -p $(UBUNTU_IMAGE)/boot
 	@cp openaos/target/zImage $(UBUNTU_IMAGE)/boot #not needed, but for good order copy kernel and initramfs to boot dir of the image.
 	@touch $(UBUNTU_IMAGE)/boot/initramfs.cpio.gz
-	@cp -rp rootfs_changes/* $(UBUNTU_IMAGE)/
+	@rsync -av ./rootfs_changes/ $(UBUNTU_IMAGE) --exclude=*~
+	@chmod +x $(UBUNTU_IMAGE)/etc/rc.local
