@@ -26,7 +26,7 @@ chmod 0600 /swapfile
 echo "/swapfile\tswap\tswap\tdefaults\t0\t0" >> /etc/fstab
 swapon /swapfile
 echo "**** Reinstall libgdk-pixbuf2.0-0"  > /dev/kmsg
-dpkg -i /libgdk-pixbuf2.0-0_2.24.0-1ubuntu1_armel.deb
+dpkg -i /packages/libgdk-pixbuf2.0-0_2.24.0-1ubuntu1_armel.deb
 echo "**** Remove network manager we will be using wicd"  > /dev/kmsg
 apt-get -y remove network-manager
 echo "**** Remove xfce powermanager we will be using our own battery monitor"  > /dev/kmsg
