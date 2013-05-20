@@ -3,6 +3,9 @@ KERNEL_VERSION=2.6.37.6+
 OPENAOS_TARGET=openaos/target
 # define your image directory
 UBUNTU_IMAGE=image
+# define crosscompiler
+OPENAOS_CROSS=arm-linux-gnueabi-
+
 clean:
 	rm -rf $(OPENAOS_TARGET)/zImage* $(OPENAOS_TARGET)/initramfs-debug.cpio.gz* $(OPENAOS_TARGET)/initramfs.cpio.gz* $(OPENAOS_TARGET)/modules $(OPENAOS_TARGET)/modules-$(KERNEL_VERSION)*
 
@@ -10,7 +13,7 @@ dist: clean build modules zImage
 
 
 build:
-	@cd kernel; make ARCH=arm CROSS_COMPILE=arm-linux-gnueabi- -j16
+	@cd kernel; make ARCH=arm CROSS_COMPILE=$(OPENAOS_CROSS) -j16
 	@cd ../
 
 openaos_dirs:
@@ -37,7 +40,7 @@ install:
 modules: openaos_dirs
 	@rm -rf tmp/modules
 	@mkdir -p tmp/modules
-	@cd kernel; make ARCH=arm CROSS_COMPILE=arm-linux-gnueabi- INSTALL_MOD_PATH=../tmp/modules modules_install
+	@cd kernel; make ARCH=arm CROSS_COMPILE=$(OPENAOS_CROSS) INSTALL_MOD_PATH=../tmp/modules modules_install
 	@cd tmp/modules/lib/modules; tar cjf ../../../../$(OPENAOS_TARGET)/modules-$(KERNEL_VERSION).tar.bz2 $(KERNEL_VERSION)
 	@cd $(OPENAOS_TARGET); md5sum modules-$(KERNEL_VERSION).tar.bz2 >modules-$(KERNEL_VERSION).tar.bz2.md5sum
 	@rm -rf tmp/modules
@@ -45,7 +48,7 @@ modules: openaos_dirs
 image_install: 
 	@rm -rf $(UBUNTU_IMAGE)/lib/modules # Note this will remove all modules in your image dir
 	@mkdir -p $(UBUNTU_IMAGE)/lib/modules
-	@cd kernel; make ARCH=arm CROSS_COMPILE=arm-linux-gnueabi- INSTALL_MOD_PATH=../$(UBUNTU_IMAGE) modules_install
+	@cd kernel; make ARCH=arm CROSS_COMPILE=$(OPENAOS_CROSS) INSTALL_MOD_PATH=../$(UBUNTU_IMAGE) modules_install
 	@cd ../
 	@rm $(UBUNTU_IMAGE)/lib/modules/2.6.37.6+/build
 	@rm $(UBUNTU_IMAGE)/lib/modules/2.6.37.6+/source

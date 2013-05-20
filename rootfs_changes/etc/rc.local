@@ -39,6 +39,7 @@ else
 echo "**** Installing SGX" > /dev/kmsg
 /etc/init.d/omap-demo
 depmod -a
+cp -rp /usr/local/XSGX/etc/xorg.conf.edit /usr/local/XSGX/etc/xorg.conf
 echo "#############################################################################################" > /dev/kmsg
 echo "##################              All done going to reboot now :)            ##################" > /dev/kmsg
 echo "#############################################################################################" > /dev/kmsg
@@ -80,12 +81,14 @@ modprobe g_cdc
 #chmod 0777 /sys/devices/platform/omap-pwm-backlight/backlight/omap-pwm-backlight/brightness
 /home/ubuntu/bat &
 echo "**** load bluetooth" > /dev/kmsg
-while true
+x=1
+while true && [ $x -le 10 ]
 do
 
 	modprobe btwilink
 	hciattach -n /dev/ttyS0 texas 3000000
 	rmmod btwilink
+	x=$(( $x + 1 ))
 done &
 
 exit 0

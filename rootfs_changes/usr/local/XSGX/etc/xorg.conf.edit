@@ -1,0 +1,48 @@
+# X.Org X server configuration file
+
+Section "Device"
+       Identifier      "Video Device"
+       Driver  "pvr"
+       Option  "FlipChain"     "true"
+       Option  "NoAccel"       "false"
+EndSection
+
+Section "Monitor"
+       Identifier      "Main Screen"
+EndSection
+
+Section "InputDevice"
+       Identifier      "TWL4030 Keypad"
+       Driver  "evdev"
+       Option  "xkb_model"     "pc105"
+       Option  "Device"        "/dev/input/event0"
+       Option  "GrabDevice"    "true"
+EndSection
+
+Section "InputDevice"
+       Identifier      "twl4030_pwrbutton"
+       Driver  "evdev"
+       Option  "xkb_model"      "pc105"
+       Option  "Device"        "/dev/input/event1"
+       Option  "GrabDevice"    "true"
+EndSection
+
+Section "InputDevice"
+       Identifier      "Main Touch Screen"
+       Driver  "evdev"
+       Option  "Device"        "/dev/input/event2"
+EndSection
+
+Section "Screen"
+       Identifier      "Screen"
+       Monitor "Monitor"
+       Device  "Video Device"
+EndSection
+
+Section "ServerLayout"
+       Identifier      "Server Layout"
+       Screen  "Screen"
+       InputDevice     "twl4030_pwrbutton"     "Keyboard"
+       InputDevice      "TWL4030 Keypad"       "Keyboard"     
+       InputDevice     "Main Touch Screen"     "CorePointer"
+EndSection
